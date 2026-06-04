@@ -1,14 +1,19 @@
-import { use, useEffect, useRef } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { WebSocketContext } from '../context/WebSocketContext';
+import { WebSocketContext, type SocketResponse } from '../context/WebSocketContext';
 import Cookies from 'js-cookie';
+import type { Client } from '../types';
+
+const clientMarkers = new Map<string, mapboxgl.Marker>();
+
 
 const useSocketMap = () => {
 
-    const { status, connectToServer } = use(WebSocketContext)
+    const { status, connectToServer, subscribeToMessages, send } = use(WebSocketContext)
 
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map>(null);
+    const [me, setMe] = useState<Client | null>(null);
 
     useEffect(() => {
         const name = Cookies.get('name');
@@ -36,9 +41,55 @@ const useSocketMap = () => {
         });
     }, [])
 
+    const createMarker = (client: Client, draggable: boolean = false): mapboxgl.Marker => {
+        if (!map.current) return;
+        if (clientMarkers.has(client.clientId)) return;
+
+        const marker = new mapboxgl.Marker({
+            color: client.color || 'gray',
+        })
+            .setLngLat([client.coords.lng, client.coords.lat])
+            .setDraggable(draggable)
+            .setPopup(new mapboxgl.Popup().setHTML(`<h3>${client.name}</h3>`))
+            .addTo(map.current)
+            .on('drag', (event) => {
+                Cookies.set('coords', JSON.stringify(event.target.getLngLat()));
+                send({
+                    type: 'CLIENT_MOVED',
+                    payload: {
+                        clientId: client.clientId,
+                        coords: event.target.getLngLat()
+                    }
+                })
+            })
+
+        clientMarkers.set(client.clientId, marker);
+        return marker;
+    }
+
+    const handleReponse = (response: SocketResponse) => {
+        const { type, payload } = response;
+        console.log({ type, payload })
+
+        switch (type) {
+            case 'WELCOME': {
+                setMe(payload);
+                createMarker(payload, true);
+                break;
+            }
+        }
+    }
+
+    useEffect(() => {
+
+        return subscribeToMessages(handleReponse);
+
+    }, [subscribeToMessages]);
+
 
     return {
         map,
+        me,
         mapContainer,
         connectToServer
     }

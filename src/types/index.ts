@@ -4,6 +4,7 @@ export interface Client {
     name: string;
     color: string;
     coords: Coords
+    updatedAt?: number
 }
 
 export interface Coords {

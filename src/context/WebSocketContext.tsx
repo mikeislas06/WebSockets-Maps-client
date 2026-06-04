@@ -73,6 +73,7 @@ interface WebSocketContextState {
 export const WebSocketContext = createContext({} as WebSocketContextState);
 
 const messageListenersRef = new Set<SocketMessagListener>();
+let connecting = false;
 
 interface Props {
     children: ReactNode;
@@ -94,10 +95,15 @@ export const WebSocketProvider = ({ children, url }: Props) => {
     }
 
     const connect = useCallback(() => {
+        if (connecting) return;
+        connecting = true;
+
+        setStatus("connecting");
         const ws = new WebSocket(url);
         shouldReconnectRef.current = true;
 
         ws.addEventListener('open', () => {
+            connecting = false;
             socket.current = ws;
             setStatus('connected');
         });
@@ -133,6 +139,9 @@ export const WebSocketProvider = ({ children, url }: Props) => {
     }, [url]);
 
     const connectToServer = (name: string, color: string, coords: Coords) => {
+
+        if (status === "connecting" || status === "connected") return;
+
         console.log({ name, color, coords })
         Cookies.set('name', name);
         Cookies.set('color', color);
@@ -141,7 +150,7 @@ export const WebSocketProvider = ({ children, url }: Props) => {
         connect();
     };
 
-    const subscribeToMessage = (listener: SocketMessagListener) => {
+    const subscribeToMessages = (listener: SocketMessagListener) => {
         messageListenersRef.add(listener);
 
         return () => {
@@ -170,9 +179,7 @@ export const WebSocketProvider = ({ children, url }: Props) => {
     }, [status, connect]);
 
     const send = (message: SocketMessage) => {
-        if (!socket) throw new Error('Socket not connected');
-        if (status !== 'connected')
-            throw new Error('Socket not connected (status)');
+        if (!socket.current) throw new Error('Socket not connected');
 
         const jsonMessage = JSON.stringify(message);
         socket.current?.send(jsonMessage);
@@ -186,7 +193,7 @@ export const WebSocketProvider = ({ children, url }: Props) => {
                 connectToServer: connectToServer,
                 disconnect: disconnect,
                 socketId: socketId,
-                subscribeToMessages: subscribeToMessage
+                subscribeToMessages: subscribeToMessages
             }}
         >
             {children}
