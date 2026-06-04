@@ -1,12 +1,11 @@
-import { ConnectForm } from "./components/ConnectForm"
+import { WebSocketProvider } from "./context/WebSocketContext"
 import MapPage from "./pages/MapPage"
 
 const SocketsMapApp = () => {
   return (
-    <>
-      <ConnectForm onSubmit={() => { }} />
+    <WebSocketProvider url={import.meta.env.VITE_SOCKET_URL || 'ws://localhost:3000'}>
       <MapPage />
-    </>
+    </WebSocketProvider>
   )
 }
 

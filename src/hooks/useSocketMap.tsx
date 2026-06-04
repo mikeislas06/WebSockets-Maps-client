@@ -1,9 +1,26 @@
-import { useEffect, useRef } from 'react';
+import { use, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
+import { WebSocketContext } from '../context/WebSocketContext';
+import Cookies from 'js-cookie';
 
 const useSocketMap = () => {
+
+    const { status, connectToServer } = use(WebSocketContext)
+
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map>(null);
+
+    useEffect(() => {
+        const name = Cookies.get('name');
+        const color = Cookies.get('color');
+        const coordsString = Cookies.get('coords');
+
+        if (!name || !color || !coordsString) return;
+        if (status !== 'offline') return;
+
+        const coords = JSON.parse(coordsString);
+        connectToServer(name, color, coords)
+    }, [connectToServer, status])
 
     useEffect(() => {
 
@@ -22,7 +39,8 @@ const useSocketMap = () => {
 
     return {
         map,
-        mapContainer
+        mapContainer,
+        connectToServer
     }
 }
 
