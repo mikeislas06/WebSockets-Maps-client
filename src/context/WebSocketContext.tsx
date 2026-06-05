@@ -99,7 +99,27 @@ export const WebSocketProvider = ({ children, url }: Props) => {
         connecting = true;
 
         setStatus("connecting");
-        const ws = new WebSocket(url);
+
+        const name = Cookies.get('name');
+        const color = Cookies.get('color') || 'gray';
+        const coordsStr = Cookies.get('coords');
+
+        let wsUrl = url;
+        if (name && coordsStr) {
+            // Use URL object if possible. ws/wss are valid.
+            try {
+                const urlObj = new URL(url);
+                urlObj.searchParams.append('name', name);
+                urlObj.searchParams.append('color', color);
+                urlObj.searchParams.append('coords', coordsStr);
+                wsUrl = urlObj.toString();
+            } catch (e) {
+                // fallback if url is somehow invalid for URL constructor
+                wsUrl = `${url}?name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&coords=${encodeURIComponent(coordsStr)}`;
+            }
+        }
+
+        const ws = new WebSocket(wsUrl);
         shouldReconnectRef.current = true;
 
         ws.addEventListener('open', () => {
