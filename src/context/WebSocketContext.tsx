@@ -142,7 +142,6 @@ export const WebSocketProvider = ({ children, url }: Props) => {
 
         if (status === "connecting" || status === "connected") return;
 
-        console.log({ name, color, coords })
         Cookies.set('name', name);
         Cookies.set('color', color);
         Cookies.set('coords', JSON.stringify(coords));
@@ -166,7 +165,6 @@ export const WebSocketProvider = ({ children, url }: Props) => {
         let interval: ReturnType<typeof setInterval>;
         if (status === 'disconnected') {
             interval = setInterval(() => {
-                console.log('Reconnecting every 1 second...');
                 connect();
             }, 1000);
         }

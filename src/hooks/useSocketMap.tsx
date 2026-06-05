@@ -67,14 +67,49 @@ const useSocketMap = () => {
         return marker;
     }
 
+    const removeMarker = (clientId: string) => {
+        if (!clientMarkers.has(clientId)) return;
+
+        const marker = clientMarkers.get(clientId);
+
+        if (!marker) return;
+
+        marker.remove();
+    }
+
+    const moveMarker = (client: Client) => {
+        if (!clientMarkers.has(client.clientId)) return;
+
+        const marker = clientMarkers.get(client.clientId);
+
+        if (!marker) return;
+
+        marker.setLngLat([client.coords.lng, client.coords.lat]);
+    }
+
     const handleReponse = (response: SocketResponse) => {
         const { type, payload } = response;
-        console.log({ type, payload })
 
         switch (type) {
             case 'WELCOME': {
                 setMe(payload);
                 createMarker(payload, true);
+                break;
+            }
+            case 'CLIENTS_STATE': {
+                payload.forEach(client => createMarker(client, false))
+                break;
+            }
+            case 'CLIENT_JOINED': {
+                createMarker(payload, false)
+                break;
+            }
+            case 'CLIENT_MOVED': {
+                moveMarker(payload)
+                break;
+            }
+            case 'CLIENT_LEFT': {
+                removeMarker(payload.clientId);
                 break;
             }
         }
