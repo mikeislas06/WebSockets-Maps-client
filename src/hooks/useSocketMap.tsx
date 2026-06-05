@@ -41,7 +41,7 @@ const useSocketMap = () => {
         });
     }, [])
 
-    const createMarker = (client: Client, draggable: boolean = false): mapboxgl.Marker => {
+    const createMarker = (client: Client, draggable: boolean = false): mapboxgl.Marker | undefined => {
         if (!map.current) return;
         if (clientMarkers.has(client.clientId)) return;
 
