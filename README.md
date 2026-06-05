@@ -7,6 +7,8 @@
 
 The frontend for the WebSockets Maps Application — a real-time user interface to visualize and interact with connected users on a dynamic map.
 
+**🚀 Live Demo:** [https://web-sockets-maps.vercel.app/](https://web-sockets-maps.vercel.app/)
+
 > The server is in a separate repository: [WebSockets-Maps-server](https://github.com/mikeislas06/WebSockets-Maps-server).
 
 ## Table of Contents
