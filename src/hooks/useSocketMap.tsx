@@ -1,7 +1,7 @@
 import { use, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { WebSocketContext, type SocketResponse } from '../context/WebSocketContext';
-import Cookies from 'js-cookie';
+import { getStorageItem, setStorageItem } from '../utils/storage';
 import type { Client } from '../types';
 
 const clientMarkers = new Map<string, mapboxgl.Marker>();
@@ -16,9 +16,9 @@ const useSocketMap = () => {
     const [me, setMe] = useState<Client | null>(null);
 
     useEffect(() => {
-        const name = Cookies.get('name');
-        const color = Cookies.get('color');
-        const coordsString = Cookies.get('coords');
+        const name = getStorageItem('name');
+        const color = getStorageItem('color');
+        const coordsString = getStorageItem('coords');
 
         if (!name || !color || !coordsString) return;
         if (status !== 'offline') return;
@@ -53,7 +53,7 @@ const useSocketMap = () => {
             .setPopup(new mapboxgl.Popup().setHTML(`<h3>${client.name}</h3>`))
             .addTo(map.current)
             .on('drag', (event) => {
-                Cookies.set('coords', JSON.stringify(event.target.getLngLat()));
+                setStorageItem('coords', JSON.stringify(event.target.getLngLat()));
                 send({
                     type: 'CLIENT_MOVED',
                     payload: {

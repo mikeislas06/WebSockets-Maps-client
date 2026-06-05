@@ -7,7 +7,7 @@ import {
     type ReactNode,
 } from 'react';
 import type { Client, Coords } from '../types';
-import Cookies from 'js-cookie';
+import { getStorageItem, setStorageItem } from '../utils/storage';
 
 type ConnectionStatus = 'offline' | 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -100,9 +100,9 @@ export const WebSocketProvider = ({ children, url }: Props) => {
 
         setStatus("connecting");
 
-        const name = Cookies.get('name');
-        const color = Cookies.get('color') || 'gray';
-        const coordsStr = Cookies.get('coords');
+        const name = getStorageItem('name');
+        const color = getStorageItem('color') || 'gray';
+        const coordsStr = getStorageItem('coords');
 
         let wsUrl = url;
         if (name && coordsStr) {
@@ -162,9 +162,9 @@ export const WebSocketProvider = ({ children, url }: Props) => {
 
         if (status === "connecting" || status === "connected") return;
 
-        Cookies.set('name', name);
-        Cookies.set('color', color);
-        Cookies.set('coords', JSON.stringify(coords));
+        setStorageItem('name', name);
+        setStorageItem('color', color);
+        setStorageItem('coords', JSON.stringify(coords));
 
         connect();
     };
